@@ -23,7 +23,12 @@ def validate_basic_config(data, project_dir):
                 And(lambda x: x, error='Either "exclude" or "include" filter should be specified.'),
                 And(lambda x: not ('exclude' in x and 'include' in x), error='"exclude" and "include" filters should '
                                                                              'be specified as different list items.'),
-            )]
+            )],
+            Optional('tags', default=[]): [
+                {
+                    'Key': And(str, len),
+                    'Value': And(str, len),
+                }]
         },
         'container': And(
             {

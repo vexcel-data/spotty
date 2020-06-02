@@ -19,9 +19,9 @@ class TestBucketResource(unittest.TestCase):
         self.assertFalse(bucket_resource._find_bucket())
 
         # bucket found
-        bucket_name = bucket_resource.get_or_create_bucket(output)
+        bucket_name = bucket_resource.get_or_create_bucket(output, [])
         self.assertEqual(bucket_name, bucket_resource._find_bucket())
-        self.assertEqual(bucket_name, bucket_resource.get_or_create_bucket(output))
+        self.assertEqual(bucket_name, bucket_resource.get_or_create_bucket(output, []))
 
         # several buckets found
         second_bucket_name = 'spotty-%s-111111111111-%s' % (project_name.lower(), region)
@@ -29,7 +29,7 @@ class TestBucketResource(unittest.TestCase):
         with self.assertRaises(ValueError):
             bucket_resource._find_bucket()
         with self.assertRaises(ValueError):
-            bucket_resource.get_or_create_bucket(output)
+            bucket_resource.get_or_create_bucket(output, [])
 
 
 if __name__ == '__main__':
