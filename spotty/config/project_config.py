@@ -26,6 +26,10 @@ class ProjectConfig(object):
         return self._config['project']['syncFilters']
 
     @property
+    def tags(self) -> list:
+        return self._config['project']['tags']
+
+    @property
     def container(self) -> ContainerConfig:
         return self._container
 

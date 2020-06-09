@@ -63,7 +63,7 @@ class InstanceManager(AbstractInstanceManager):
 
     def sync(self, output: AbstractOutputWriter, dry_run=False):
         # create or get existing bucket for the project
-        bucket_name = self.instance_deployment.bucket.get_or_create_bucket(output, dry_run)
+        bucket_name = self.instance_deployment.bucket.get_or_create_bucket(output, self.project_config.tags, dry_run)
 
         # sync the project with S3 bucket
         output.write('Syncing the project with S3 bucket...')
@@ -78,7 +78,7 @@ class InstanceManager(AbstractInstanceManager):
 
     def download(self, download_filters: list, output: AbstractOutputWriter, dry_run=False):
         # create or get existing bucket for the project
-        bucket_name = self.instance_deployment.bucket.get_or_create_bucket(output, dry_run)
+        bucket_name = self.instance_deployment.bucket.get_or_create_bucket(output, self.project_config.tags, dry_run)
 
         # sync files from the instance to a temporary S3 directory
         output.write('Uploading files from the instance to S3 bucket...')

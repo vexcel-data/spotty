@@ -12,7 +12,7 @@ class InstanceProfileStackResource(object):
         self._region = region
         self._stack_name = 'spotty-instance-profile-%s-%s' % (project_name.lower(), instance_name.lower())
 
-    def create_or_update_stack(self, managed_policy_arns: list, output: AbstractOutputWriter):
+    def create_or_update_stack(self, managed_policy_arns: list, output: AbstractOutputWriter, tags: list):
         """Creates or updates an instance profile.
         It was moved to a separate stack because creating of an instance profile resource takes 2 minutes.
         """
@@ -28,10 +28,10 @@ class InstanceProfileStackResource(object):
         try:
             if stack:
                 # update the stack and wait until it will be updated
-                self._update_stack(template, output)
+                self._update_stack(template, output, tags)
             else:
                 # create the stack and wait until it will be created
-                self._create_stack(template, output)
+                self._create_stack(template, output, tags)
 
             stack = Stack.get_by_name(self._cf, self._stack_name)
         except WaiterError:
@@ -45,7 +45,7 @@ class InstanceProfileStackResource(object):
 
         return profile_arn
 
-    def _create_stack(self, template: str, output: AbstractOutputWriter):
+    def _create_stack(self, template: str, output: AbstractOutputWriter, tags: list):
         """Creates the stack and waits until it will be created."""
         output.write('Creating IAM role for the instance...')
 
@@ -55,12 +55,13 @@ class InstanceProfileStackResource(object):
             TemplateBody=template,
             Capabilities=['CAPABILITY_IAM'],
             OnFailure='DELETE',
+            Tags=tags,
         )
 
         # wait for the stack to be created
         stack.wait_stack_created(delay=15)
 
-    def _update_stack(self, template: str, output: AbstractOutputWriter):
+    def _update_stack(self, template: str, output: AbstractOutputWriter, tags: list):
         """Updates the stack and waits until it will be updated."""
         try:
             updated_stack = Stack.update_stack(
@@ -68,6 +69,7 @@ class InstanceProfileStackResource(object):
                 StackName=self._stack_name,
                 TemplateBody=template,
                 Capabilities=['CAPABILITY_IAM'],
+                Tags=tags,
             )
         except ClientError as e:
             # the stack was not updated because there are no changes

@@ -59,7 +59,7 @@ class InstanceDeployment(AbstractAwsDeployment):
                         self.instance_config.max_price, availability_zone)
 
         # create or get existing bucket for the project
-        bucket_name = self.bucket.get_or_create_bucket(output, dry_run)
+        bucket_name = self.bucket.get_or_create_bucket(output, project_config.tags, dry_run)
 
         # sync the project with the bucket
         output.write('Syncing the project with S3 bucket...')
@@ -71,7 +71,7 @@ class InstanceDeployment(AbstractAwsDeployment):
             instance_profile_stack = InstanceProfileStackResource(
                 self._project_name, self.instance_config.name, self.instance_config.region)
             instance_profile_arn = instance_profile_stack.create_or_update_stack(
-                self.instance_config.managed_policy_arns, output=output)
+                self.instance_config.managed_policy_arns, output=output, tags=project_config.tags)
         else:
             instance_profile_arn = None
 
@@ -93,7 +93,7 @@ class InstanceDeployment(AbstractAwsDeployment):
 
         # create stack
         if not dry_run:
-            self.stack.create_or_update_stack(template, parameters, output)
+            self.stack.create_or_update_stack(template, parameters, output, project_config.tags)
 
     def delete(self, output: AbstractOutputWriter):
         # terminate the instance

@@ -19,7 +19,7 @@ class InstanceStackResource(object):
     def get_instance(self):
         return Instance.get_by_stack_name(self._ec2, self.name)
 
-    def create_or_update_stack(self, template: str, parameters: dict, output: AbstractOutputWriter):
+    def create_or_update_stack(self, template: str, parameters: dict, output: AbstractOutputWriter, tags: list):
         """Runs CloudFormation template."""
 
         # delete the stack if it exists
@@ -35,6 +35,7 @@ class InstanceStackResource(object):
             Parameters=[{'ParameterKey': key, 'ParameterValue': value} for key, value in parameters.items()],
             Capabilities=['CAPABILITY_IAM'],
             OnFailure='DO_NOTHING',
+            Tags=tags
         )
 
         output.write('Waiting for the stack to be created...')
