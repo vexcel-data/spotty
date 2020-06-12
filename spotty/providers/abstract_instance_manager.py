@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+
 from spotty.commands.writers.abstract_output_writrer import AbstractOutputWriter
 from spotty.config.abstract_instance_config import AbstractInstanceConfig
 from spotty.config.project_config import ProjectConfig
@@ -6,9 +8,10 @@ from spotty.config.project_config import ProjectConfig
 
 class AbstractInstanceManager(ABC):
 
-    def __init__(self, project_config: ProjectConfig, instance_config: dict):
+    def __init__(self, project_config: ProjectConfig, instance_config: dict, fork_id: Optional[str] = None):
         self._project_config = project_config
         self._instance_config = self._get_instance_config(instance_config)
+        self._fork_id = fork_id
 
     @abstractmethod
     def _get_instance_config(self, config: dict) -> AbstractInstanceConfig:
@@ -94,3 +97,7 @@ class AbstractInstanceManager(ABC):
     @property
     def instance_config(self) -> AbstractInstanceConfig:
         return self._instance_config
+
+    @property
+    def fork_id(self) -> Optional[str]:
+        return self._fork_id

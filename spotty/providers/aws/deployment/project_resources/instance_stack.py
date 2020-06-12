@@ -1,3 +1,5 @@
+from typing import Optional
+
 import boto3
 from spotty.commands.writers.abstract_output_writrer import AbstractOutputWriter
 from spotty.providers.aws.aws_resources.instance import Instance
@@ -6,11 +8,15 @@ from spotty.providers.aws.aws_resources.stack import Stack
 
 class InstanceStackResource(object):
 
-    def __init__(self, project_name: str, instance_name: str, region: str):
+    def __init__(self, project_name: str, instance_name: str, region: str, fork_id: Optional[str] = None):
         self._cf = boto3.client('cloudformation', region_name=region)
         self._ec2 = boto3.client('ec2', region_name=region)
         self._region = region
-        self._stack_name = 'spotty-instance-%s-%s' % (project_name.lower(), instance_name.lower())
+        self._fork_id = fork_id
+        if fork_id:
+            self._stack_name = 'spotty-instance-%s-%s-%s' % (project_name.lower(), instance_name.lower(), fork_id)
+        else:
+            self._stack_name = 'spotty-instance-%s-%s' % (project_name.lower(), instance_name.lower())
 
     @property
     def name(self):

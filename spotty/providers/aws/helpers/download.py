@@ -1,10 +1,13 @@
 import subprocess
+from typing import Optional
+
 from spotty.helpers.ssh import get_ssh_command
 from spotty.providers.aws.helpers.aws_cli import AwsCli
 
 
-def get_tmp_instance_s3_path(bucket_name, instance_name):
-    return 's3://%s/download/instance-%s' % (bucket_name, instance_name)
+def get_tmp_instance_s3_path(bucket_name: str, path_prefix: str, fork_id: Optional[str], instance_name: str):
+    fork_path = fork_id if fork_id else 'default'
+    return f's3://{bucket_name}{path_prefix}{fork_path}/download/instance-{instance_name}'
 
 
 def upload_from_instance_to_s3(download_filters: list, host: str, port: int, user: str, key_path: str,
@@ -31,9 +34,13 @@ def upload_from_instance_to_s3(download_filters: list, host: str, port: int, use
     subprocess.call(ssh_command)
 
 
-def download_from_s3_to_local(bucket_name: str, instance_name: str, project_dir: str, region: str,
+def download_from_s3_to_local(bucket_name: str, path_prefix: str, fork_id: Optional[str],
+                              instance_name: str, project_dir: str, region: str,
                               download_filters: list, dry_run: bool = False):
     """Downloads files from a temporary S3 directory to local."""
-    AwsCli(region=region).s3_sync(get_tmp_instance_s3_path(bucket_name, instance_name), project_dir,
-                                  filters=download_filters, exact_timestamp=True, capture_output=False,
+    AwsCli(region=region).s3_sync(get_tmp_instance_s3_path(bucket_name, path_prefix, fork_id, instance_name),
+                                  project_dir,
+                                  filters=download_filters,
+                                  exact_timestamp=True,
+                                  capture_output=False,
                                   dry_run=dry_run)

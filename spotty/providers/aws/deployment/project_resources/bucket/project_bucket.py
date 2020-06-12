@@ -1,14 +1,14 @@
-import boto3
 import re
 from spotty.commands.writers.abstract_output_writrer import AbstractOutputWriter
+from spotty.providers.aws.deployment.project_resources.bucket.abstruct_bucket import AbstractBucketResource
 from spotty.utils import random_string
 
 
-class BucketResource(object):
+class ProjectBucketResource(AbstractBucketResource):
 
     def __init__(self, project_name: str, region: str):
-        self._s3 = boto3.client('s3', region_name=region)
-        self._region = region
+        super().__init__(region)
+        self._bucket_name = None
         self._bucket_prefix = 'spotty-%s' % project_name.lower()
 
     def _find_bucket(self):
@@ -36,8 +36,9 @@ class BucketResource(object):
                                            CreateBucketConfiguration={'LocationConstraint': self._region})
                 self._s3.put_bucket_tagging(Bucket=bucket_name, Tagging={'TagSet': tags})
             output.write('Bucket "%s" was created.' % bucket_name)
-
+        self._bucket_name = bucket_name
         return bucket_name
 
-    def delete_bucket(self):
-        pass
+    @property
+    def path_prefix(self):
+        return '/'

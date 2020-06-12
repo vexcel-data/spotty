@@ -16,6 +16,7 @@ class TestBucketResource(unittest.TestCase):
             'amiName': None,
             'amiId': None,
             'availabilityZone': '',
+            'bucket': None,
             'dockerDataRoot': '',
             'localSshPort': None,
             'maxPrice': 0,

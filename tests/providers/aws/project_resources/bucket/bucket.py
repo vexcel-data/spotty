@@ -1,18 +1,18 @@
 import unittest
 import boto3
 from spotty.commands.writers.null_output_writrer import NullOutputWriter
-from spotty.providers.aws.deployment.project_resources.bucket import BucketResource
+from spotty.providers.aws.deployment.project_resources.bucket.project_bucket import ProjectBucketResource
 from moto import mock_s3
 
 
-class TestBucketResource(unittest.TestCase):
+class TestProjectBucketResource(unittest.TestCase):
 
     @mock_s3
     def test_create_and_find_bucket(self):
         region = 'eu-central-1'
         project_name = 'TEST_PROJECT'
         s3 = boto3.client('s3', region_name=region)
-        bucket_resource = BucketResource(project_name, region)
+        bucket_resource = ProjectBucketResource(project_name, region)
         output = NullOutputWriter()
 
         # bucket not found
