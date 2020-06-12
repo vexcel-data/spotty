@@ -23,6 +23,8 @@ class TestBucketResource(unittest.TestCase):
             'rootVolumeSize': 0,
             'subnetId': '',
             'volumes': [],
+            'commands': '',
+            'managedPolicyArns': [],
         }
 
         self.assertEqual(expected_params, validate_instance_parameters(required_params))

@@ -7,6 +7,7 @@ from spotty.deployment.abstract_instance_volume import AbstractInstanceVolume
 from spotty.deployment.container_deployment import ContainerDeployment
 from spotty.providers.aws.config.instance_config import InstanceConfig
 from spotty.providers.aws.deployment.project_resources.ebs_volume import EbsVolume
+from spotty.providers.aws.deployment.project_resources.efs_volume import EfsVolume
 
 
 def prepare_instance_template(instance_config: InstanceConfig, volumes: List[AbstractInstanceVolume],
@@ -31,6 +32,11 @@ def prepare_instance_template(instance_config: InstanceConfig, volumes: List[Abs
         output.write('- availability zone: %s' % availability_zone)
     else:
         output.write('- availability zone: auto')
+
+    efs_sgs = _updated_with_efs_security_groups(volumes)
+    if efs_sgs:
+        template['Resources']['InstanceLaunchTemplate']['Properties'][
+            'LaunchTemplateData']['SecurityGroupIds'].extend(efs_sgs)
 
     # set subnet
     if instance_config.subnet_id:
@@ -83,6 +89,9 @@ def prepare_instance_template(instance_config: InstanceConfig, volumes: List[Abs
         template['Resources']['InstanceLaunchTemplate']['Metadata']['AWS::CloudFormation::Init'] \
             ['docker_container_config']['files']['/tmp/spotty/container/scripts/startup_commands.sh']['content'] \
             = container.config.commands
+
+    with open('template', 'w') as fout:
+        fout.write(yaml.dump(template, Dumper=CfnYamlDumper))
 
     return yaml.dump(template, Dumper=CfnYamlDumper)
 
@@ -190,3 +199,7 @@ def _get_volume_resources(volumes: List[AbstractInstanceVolume], output: Abstrac
             resources[vol_attachment_resource_name] = vol_attachment_resource
 
     return resources
+
+def _updated_with_efs_security_groups(volumes: List[AbstractInstanceVolume]) -> List[str]:
+    efs_sgs = {v.mount_target_sg_id for v in volumes if isinstance(v, EfsVolume)}
+    return list(efs_sgs)

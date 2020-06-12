@@ -8,12 +8,13 @@ from spotty.providers.aws.aws_resources.image import Image
 from spotty.helpers.print_info import render_volumes_info_table
 from spotty.providers.aws.aws_resources.snapshot import Snapshot
 from spotty.providers.aws.aws_resources.volume import Volume
-from spotty.providers.aws.config.instance_config import VOLUME_TYPE_EBS
+from spotty.providers.aws.config.instance_config import VOLUME_TYPE_EBS, VOLUME_TYPE_EFS
 from spotty.deployment.container_deployment import ContainerDeployment
 from spotty.providers.aws.deployment.abstract_aws_deployment import AbstractAwsDeployment
 from spotty.providers.aws.deployment.checks import check_az_and_subnet, check_max_price
 from spotty.providers.aws.deployment.project_resources.ebs_volume import EbsVolume
 from spotty.providers.aws.deployment.cf_templates.instance_template import prepare_instance_template
+from spotty.providers.aws.deployment.project_resources.efs_volume import EfsVolume
 from spotty.providers.aws.deployment.project_resources.instance_profile_stack import InstanceProfileStackResource
 from spotty.providers.aws.helpers.download import get_tmp_instance_s3_path
 from spotty.providers.aws.helpers.sync import sync_project_with_s3, get_project_s3_path, get_instance_sync_arguments
@@ -151,6 +152,8 @@ class InstanceDeployment(AbstractAwsDeployment):
             volume_type = volume_config['type']
             if volume_type == VOLUME_TYPE_EBS:
                 volumes.append(EbsVolume(self._ec2, volume_config, self._project_name, self.instance_config.name))
+            elif volume_type == VOLUME_TYPE_EFS:
+                volumes.append(EfsVolume(volume_config))
             else:
                 raise ValueError('AWS volume type "%s" not supported.' % volume_type)
 
@@ -178,7 +181,11 @@ class InstanceDeployment(AbstractAwsDeployment):
         key_name = self.key_pair.get_or_create_key(dry_run)
 
         # get mount directories for the volumes
-        mount_dirs = [volume.mount_dir for volume in volumes]
+        mount_dirs = [volume.mount_dir for volume in volumes if isinstance(volume, EbsVolume)]
+
+        # get EFS fs ids and mount directories
+        efs_fs_ids = [volume.file_system_id for volume in volumes if isinstance(volume, EfsVolume)]
+        efs_mount_dirs = [volume.mount_dir for volume in volumes if isinstance(volume, EfsVolume)]
 
         # get Docker runtime parameters
         runtime_parameters = container.get_runtime_parameters(is_gpu_instance(self.instance_config.instance_type))
@@ -198,6 +205,8 @@ class InstanceDeployment(AbstractAwsDeployment):
             'ImageId': ami.image_id,
             'RootVolumeSize': str(root_volume_size),
             'VolumeMountDirectories': ('"%s"' % '" "'.join(mount_dirs)) if mount_dirs else '',
+            'EfsFileSystemIds': (' '.join(efs_fs_ids)) if efs_fs_ids else '',
+            'EfsMountDirectories': (' '.join(efs_mount_dirs)) if efs_fs_ids else '',
             'DockerDataRootDirectory': self.instance_config.docker_data_root,
             'DockerImage': container.config.image,
             'DockerfilePath': container.dockerfile_path,

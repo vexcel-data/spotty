@@ -21,6 +21,46 @@ and [GCP Preemtible VMs](https://cloud.google.com/preemptible-vms/)
 - Read [this](https://medium.com/@apls/how-to-train-deep-learning-models-on-aws-spot-instances-using-spotty-8d9e0543d365) 
 article on Medium for a real-world example.
 
+## Fork Documentation
+
+Following features were added in Vexcel fork.
+
+### AWS tagging
+
+With this feature it is possible to tag AWS resources created by spotty. Note that create-ami command not covered with
+this changes.
+
+Example:
+```yaml
+project:
+  tags:
+    - Key: project
+      Value: copper
+    - Key: environment
+      Value: development
+    - Key: service
+      Value: copper models
+```
+
+### EFS support
+
+Now it is possible to attach EFS (Elastic File System).
+
+Example:
+```yaml
+instances:
+  - name: training-instance
+    provider: aws
+    parameters:
+      volumes:
+        - name: efs
+          type: efs
+          parameters:
+            mountDir: /efs_dir
+            fileSystemId: fs-0230dd87
+            mountTargetSgId: sg-50a0d597
+```
+
 ## Installation
 
 Requirements:
