@@ -65,6 +65,13 @@ def validate_ebs_volume_parameters(params: dict):
 
     return validate_config(schema, params)
 
+def validate_efs_volume_parameters(params: dict):
+    schema = Schema({
+        'fileSystemId': And(str, Regex(r'^fs-\w+$')),
+        'mountTargetSgId': And(str, Regex(r'^sg-\w+$')),
+        'mountDir': str,
+    })
+    return validate_config(schema, params)
 
 def is_gpu_instance(instance_type: str):
     # a list of GPU instance from: https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing

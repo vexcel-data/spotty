@@ -2,6 +2,7 @@ from spotty.config.abstract_instance_config import AbstractInstanceConfig
 from spotty.providers.aws.config.validation import validate_instance_parameters
 
 VOLUME_TYPE_EBS = 'ebs'
+VOLUME_TYPE_EFS = 'efs'
 DEFAULT_AMI_NAME = 'SpottyAMI'
 
 
