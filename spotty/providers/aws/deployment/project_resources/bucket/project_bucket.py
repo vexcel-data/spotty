@@ -43,5 +43,5 @@ class ProjectBucketResource(AbstractBucketResource):
         return bucket_name
 
     @property
-    def path_prefix(self):
+    def path_prefix(self) -> str:
         return '/'
