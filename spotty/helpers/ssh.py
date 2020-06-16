@@ -17,7 +17,7 @@ def get_ssh_command(host: str, port: int, user: str, key_path: str, remote_cmd: 
 
 
 def run_script(host: str, port: int, user: str, key_path: str, script_name: str, script_content: str,
-               tmux_session_name: str, restart: bool = False, logging: bool = False):
+               tmux_session_name: str, restart: bool = False, remain_on_exit_off: bool = False, logging: bool = False):
     # encode the script content to base64
     script_base64 = base64.b64encode(script_content.encode('utf-8')).decode('utf-8')
 
@@ -45,7 +45,8 @@ def run_script(host: str, port: int, user: str, key_path: str, script_name: str,
 
     # command to create new tmux session and run user script
     new_session_cmd = subprocess.list2cmdline(['tmux', 'new', '-s', tmux_session_name, '-n', script_name,
-                                               'tmux set remain-on-exit on && %s' % docker_cmd])
+                                               ('%s' if remain_on_exit_off else 'tmux set remain-on-exit on && %s')
+                                               % docker_cmd])
 
     if restart:
         # composition of the commands: killing the script session if it already exists, then uploading the script

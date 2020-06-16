@@ -1,3 +1,5 @@
+from typing import Optional
+
 from spotty.config.abstract_instance_config import AbstractInstanceConfig
 from spotty.providers.aws.config.validation import validate_instance_parameters
 
@@ -56,3 +58,7 @@ class InstanceConfig(AbstractInstanceConfig):
     @property
     def managed_policy_arns(self) -> list:
         return self._params['managedPolicyArns']
+
+    @property
+    def bucket(self) -> Optional[str]:
+        return self._params['bucket']

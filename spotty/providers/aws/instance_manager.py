@@ -14,7 +14,7 @@ class InstanceManager(AbstractInstanceManager):
     @property
     def instance_deployment(self) -> InstanceDeployment:
         """Returns an instance deployment manager."""
-        return InstanceDeployment(self.project_config.project_name, self.instance_config)
+        return InstanceDeployment(self.project_config.project_name, self.instance_config, self.fork_id)
 
     @property
     def ami_deployment(self) -> AmiDeployment:
@@ -67,7 +67,9 @@ class InstanceManager(AbstractInstanceManager):
 
         # sync the project with S3 bucket
         output.write('Syncing the project with S3 bucket...')
-        sync_project_with_s3(self.project_config.project_dir, bucket_name, self.instance_config.region,
+        sync_project_with_s3(self.project_config.project_dir, bucket_name,
+                             self.instance_deployment.bucket.path_prefix,
+                             self.fork_id, self.instance_config.region,
                              self.project_config.sync_filters, dry_run=dry_run)
 
         if not dry_run:
@@ -87,7 +89,8 @@ class InstanceManager(AbstractInstanceManager):
 
         # sync the project with the S3 bucket
         output.write('Downloading files from S3 bucket to local...')
-        download_from_s3_to_local(bucket_name, self.instance_config.name, self.project_config.project_dir,
+        download_from_s3_to_local(bucket_name, self.instance_deployment.bucket.path_prefix,
+                                  self.fork_id, self.instance_config.name, self.project_config.project_dir,
                                   self.instance_config.region, download_filters, dry_run=dry_run)
 
     def get_status_text(self):

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from spotty.deployment.abstract_instance_volume import AbstractInstanceVolume
 from spotty.providers.aws.aws_resources.snapshot import Snapshot
 from spotty.providers.aws.aws_resources.volume import Volume
@@ -11,13 +13,14 @@ class EbsVolume(AbstractInstanceVolume):
     DP_RETAIN = 'retain'
     DP_DELETE = 'delete'
 
-    def __init__(self, ec2, volume_config: dict, project_name: str, instance_name: str):
+    def __init__(self, ec2, volume_config: dict, project_name: str, instance_name: str, fork_id: Optional[str] = None):
         self._ec2 = ec2
         self._name = volume_config['name']
         self._params = validate_ebs_volume_parameters(volume_config['parameters'])
 
         self._project_name = project_name
         self._instance_name = instance_name
+        self._fork_id = fork_id
 
     @property
     def title(self):
@@ -54,7 +57,8 @@ class EbsVolume(AbstractInstanceVolume):
         volume_name = self._params['volumeName']
         if not volume_name:
             volume_name = '%s-%s-%s' % (self._project_name.lower(), self._instance_name.lower(), self.name.lower())
-
+        if self._fork_id:
+            volume_name += '-' + self._fork_id
         return volume_name
 
     @property

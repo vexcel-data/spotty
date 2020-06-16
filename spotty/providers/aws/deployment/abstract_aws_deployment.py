@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Optional
+
 import boto3
 from spotty.providers.aws.aws_resources.subnet import Subnet
 from spotty.providers.aws.aws_resources.vpc import Vpc
@@ -8,8 +10,9 @@ from spotty.providers.aws.deployment.project_resources.key_pair import KeyPairRe
 
 class AbstractAwsDeployment(ABC):
 
-    def __init__(self, project_name: str, instance_config: InstanceConfig):
+    def __init__(self, project_name: str, instance_config: InstanceConfig, fork_id: Optional[str] = None):
         self._project_name = project_name
+        self._fork_id = fork_id
         self._instance_config = instance_config
         self._ec2 = boto3.client('ec2', region_name=instance_config.region)
 

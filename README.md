@@ -61,6 +61,62 @@ instances:
             mountTargetSgId: sg-50a0d597
 ```
 
+### Use existing bucket
+
+By default spotty will create s3 bucket for project. Now it is possible to specify existing bucket.
+Spotty will store its objects with `/spotty/` prefix. 
+
+Example:
+```yaml
+instances:
+  - name: training-instance
+    provider: aws
+    parameters:
+      bucket: copper-models
+```  
+
+### Forks
+
+With forks it is possible to simultaneously start multiple instances with the same name. Enabling following use case:
+
+```bash
+spotty start
+spotty run train -p LR=0.01 # Ctrl+b, then d to detach
+spotty start # Will terminate previously started training
+spotty run train -p LR=0.02 
+```
+
+Instead with forks:
+
+```bash
+spotty start --fork lr01
+spotty run train --fork lr01 -p LR=0.01 # Ctrl+b, then d to detach
+spotty start --fork lr02 # Will not interfere with previously started training
+spotty run train --fork lr02 -p LR=0.02 
+# wait until training is complete
+spotty stop --fork lr01
+spotty stop --fork lr02
+```
+
+If you just want to create fork with unique name:
+
+```bash
+FORK_ID=$(spotty fork-id)
+spotty start --fork $FORK_ID
+```
+
+All commands that interact with running instance have support --fork argument.
+
+### Tmux remain-on-exit off
+
+By default `spotty run cmd` will wait for user to close session even after `cmd` execution is complete.
+It is not ideal for automation. So now `run` has `remain-on-exit-off` with which tmux window will be closed
+after command is executed.
+
+```bash
+spotty run train --remain-on-exit-off
+``` 
+
 ## Installation
 
 Requirements:

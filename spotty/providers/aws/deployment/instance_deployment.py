@@ -12,13 +12,15 @@ from spotty.providers.aws.config.instance_config import VOLUME_TYPE_EBS, VOLUME_
 from spotty.deployment.container_deployment import ContainerDeployment
 from spotty.providers.aws.deployment.abstract_aws_deployment import AbstractAwsDeployment
 from spotty.providers.aws.deployment.checks import check_az_and_subnet, check_max_price
+from spotty.providers.aws.deployment.project_resources.bucket.abstruct_bucket import AbstractBucketResource
+from spotty.providers.aws.deployment.project_resources.bucket.existing_bucket import ExistingBucketResource
+from spotty.providers.aws.deployment.project_resources.bucket.project_bucket import ProjectBucketResource
 from spotty.providers.aws.deployment.project_resources.ebs_volume import EbsVolume
 from spotty.providers.aws.deployment.cf_templates.instance_template import prepare_instance_template
 from spotty.providers.aws.deployment.project_resources.efs_volume import EfsVolume
 from spotty.providers.aws.deployment.project_resources.instance_profile_stack import InstanceProfileStackResource
 from spotty.providers.aws.helpers.download import get_tmp_instance_s3_path
 from spotty.providers.aws.helpers.sync import sync_project_with_s3, get_project_s3_path, get_instance_sync_arguments
-from spotty.providers.aws.deployment.project_resources.bucket import BucketResource
 from spotty.providers.aws.deployment.project_resources.instance_stack import InstanceStackResource
 from spotty.providers.aws.config.validation import is_nitro_instance, is_gpu_instance
 
@@ -30,12 +32,19 @@ class InstanceDeployment(AbstractAwsDeployment):
         return '%s-%s' % (self._project_name.lower(), self.instance_config.name.lower())
 
     @property
-    def bucket(self) -> BucketResource:
-        return BucketResource(self._project_name, self.instance_config.region)
+    def bucket(self) -> AbstractBucketResource:
+        if self.instance_config.bucket:
+            return ExistingBucketResource(self.instance_config.bucket,
+                                          self._project_name,
+                                          self.instance_config.region)
+        else:
+            return ProjectBucketResource(self._project_name,
+                                         self.instance_config.region)
 
     @property
     def stack(self) -> InstanceStackResource:
-        return InstanceStackResource(self._project_name, self.instance_config.name, self.instance_config.region)
+        return InstanceStackResource(self._project_name, self.instance_config.name, self.instance_config.region,
+                                     self._fork_id)
 
     def get_instance(self):
         return self.stack.get_instance()
@@ -64,8 +73,10 @@ class InstanceDeployment(AbstractAwsDeployment):
 
         # sync the project with the bucket
         output.write('Syncing the project with S3 bucket...')
-        sync_project_with_s3(project_config.project_dir, bucket_name, self.instance_config.region,
-                             project_config.sync_filters, dry_run)
+        sync_project_with_s3(project_config.project_dir, bucket_name,
+                             self.bucket.path_prefix, self._fork_id,
+                             self.instance_config.region, project_config.sync_filters,
+                             dry_run)
 
         # create or update instance profile
         if not dry_run:
@@ -151,7 +162,11 @@ class InstanceDeployment(AbstractAwsDeployment):
         for volume_config in self.instance_config.volumes:
             volume_type = volume_config['type']
             if volume_type == VOLUME_TYPE_EBS:
-                volumes.append(EbsVolume(self._ec2, volume_config, self._project_name, self.instance_config.name))
+                volumes.append(EbsVolume(self._ec2,
+                                         volume_config,
+                                         self._project_name,
+                                         self.instance_config.name,
+                                         self._fork_id))
             elif volume_type == VOLUME_TYPE_EFS:
                 volumes.append(EfsVolume(volume_config))
             else:
@@ -214,10 +229,11 @@ class InstanceDeployment(AbstractAwsDeployment):
             'DockerRuntimeParameters': runtime_parameters,
             'DockerWorkingDirectory': container.config.working_dir,
             'InstanceNameTag': self.ec2_instance_name,
-            'ProjectS3Path': get_project_s3_path(bucket_name),
+            'ProjectS3Path': get_project_s3_path(bucket_name, self.bucket.path_prefix, self._fork_id),
             'HostProjectDirectory': container.host_project_dir,
             'SyncCommandArgs': list2cmdline(get_instance_sync_arguments(sync_filters)),
-            'UploadS3Path': get_tmp_instance_s3_path(bucket_name, instance_name),
+            'UploadS3Path': get_tmp_instance_s3_path(bucket_name, self.bucket.path_prefix,
+                                                     self._fork_id, instance_name),
         }
 
         return parameters

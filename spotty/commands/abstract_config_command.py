@@ -21,6 +21,7 @@ class AbstractConfigCommand(AbstractCommand):
     def configure(self, parser: ArgumentParser):
         super().configure(parser)
         parser.add_argument('-c', '--config', type=str, default=None, help='Path to the configuration file')
+        parser.add_argument('-k', '--fork', type=str, default=None, help='Fork id')
         parser.add_argument('instance_name', metavar='INSTANCE_NAME', nargs='?', type=str, help='Instance name')
 
     def run(self, args: Namespace, output: AbstractOutputWriter):
@@ -45,7 +46,7 @@ class AbstractConfigCommand(AbstractCommand):
         instance_config = self._get_instance_config(project_config, args.instance_name, output)
 
         # create an instance manger
-        instance_manager = InstanceManagerFactory.get_instance(project_config, instance_config)
+        instance_manager = InstanceManagerFactory.get_instance(project_config, instance_config, args.fork)
 
         # run the command
         self._run(instance_manager, args, output)
