@@ -8,4 +8,4 @@ class ForkIdCommand(AbstractCommand):
     description = 'Generate fork id'
 
     def run(self, args: Namespace, output: AbstractOutputWriter):
-        print(str(uuid.uuid4()).split('-')[-1])
+        output.write(str(uuid.uuid4()).split('-')[-1])

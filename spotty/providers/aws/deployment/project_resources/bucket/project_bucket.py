@@ -1,4 +1,7 @@
 import re
+
+from typing import List, Any
+
 from spotty.commands.writers.abstract_output_writrer import AbstractOutputWriter
 from spotty.providers.aws.deployment.project_resources.bucket.abstruct_bucket import AbstractBucketResource
 from spotty.utils import random_string
@@ -23,7 +26,7 @@ class ProjectBucketResource(AbstractBucketResource):
 
         return bucket_name
 
-    def get_or_create_bucket(self, output: AbstractOutputWriter, tags: list, dry_run=False):
+    def get_or_create_bucket(self, output: AbstractOutputWriter, tags: List[Any], dry_run: bool = False):
         bucket_name = self._find_bucket()
         if not bucket_name:
             bucket_name = '-'.join([self._bucket_prefix, random_string(12), self._region])
