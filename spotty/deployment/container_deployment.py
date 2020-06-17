@@ -49,6 +49,15 @@ class ContainerDeployment(object):
     def volume_mounts(self) -> List[VolumeMount]:
         return self._volume_mounts
 
+    @property
+    def docker_build_args(self) -> str:
+        args = []
+        for arg_key, arg_val in self._config.build_args.items():
+            if arg_val.startswith('$'):
+                arg_val = os.environ[arg_val[1:]]
+            args.append('--build-arg {}={}'.format(arg_key, arg_val))
+        return ' '.join(args)
+
     def get_runtime_parameters(self, is_nvidia_runtime: bool):
         """Returns parameters for the ""docker run" command."""
         parameters = self._config.runtime_parameters + ['-td', '--net=host']

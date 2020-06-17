@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 
 class ContainerConfig(object):
@@ -42,3 +42,7 @@ class ContainerConfig(object):
     @property
     def runtime_parameters(self):
         return self._config['runtimeParameters']
+
+    @property
+    def build_args(self) -> Dict[str, str]:
+        return {arg['name']: arg['value'] for arg in self._config.get('buildArgs', [])}

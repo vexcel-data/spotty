@@ -72,6 +72,7 @@ def validate_basic_config(data, project_dir):
                 Optional('commands', default=''): str,
                 Optional('ports', default=[]): [And(int, lambda x: 0 <= x <= 65535)],
                 Optional('runtimeParameters', default=[]): [str],
+                Optional('buildArgs', default=[]): [{'name': str, 'value': str}],
             },
             And(lambda x: x['image'] or x['file'], error='Either "image" or "file" should be specified.'),
             And(lambda x: not (x['image'] and x['file']), error='"image" and "file" cannot be specified together.'),

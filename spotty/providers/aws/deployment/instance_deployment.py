@@ -228,6 +228,7 @@ class InstanceDeployment(AbstractAwsDeployment):
             'DockerBuildContextPath': container.docker_context_path,
             'DockerRuntimeParameters': runtime_parameters,
             'DockerWorkingDirectory': container.config.working_dir,
+            'DockerBuildArgs': container.docker_build_args,
             'InstanceNameTag': self.ec2_instance_name,
             'ProjectS3Path': get_project_s3_path(bucket_name, self.bucket.path_prefix, self._fork_id),
             'HostProjectDirectory': container.host_project_dir,
