@@ -90,9 +90,6 @@ def prepare_instance_template(instance_config: InstanceConfig, volumes: List[Abs
             ['docker_container_config']['files']['/tmp/spotty/container/scripts/startup_commands.sh']['content'] \
             = container.config.commands
 
-    with open('template', 'w') as fout:
-        fout.write(yaml.dump(template, Dumper=CfnYamlDumper))
-
     return yaml.dump(template, Dumper=CfnYamlDumper)
 
 
